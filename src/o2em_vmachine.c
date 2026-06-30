@@ -469,7 +469,12 @@ void write_p1(uint8_t d)
 /* DIAG (Odyssey2 keypad): g_o2_kbscan = # times the BIOS scanned the digit row
  * (row 0) with the keyboard enabled; g_o2_key1 = # of those where key[49] ("1")
  * was set. Shown on-screen by main_videopac to locate the auto-start failure. */
-unsigned int g_o2_kbscan = 0, g_o2_key1 = 0;
+unsigned int g_o2_kbscan = 0, g_o2_key1 = 0, g_o2_keyread = 0;
+
+/* DIAG accessors for the on-SD log (main_videopac): the digit-row scan matrix
+ * (key_map[0] should be {48,49,50,...} = RETROK_0..7; all-zero on device would
+ * mean the overlay's .data didn't load) and live app_data/state. */
+const unsigned int *o2_diag_keymap_row0(void) { return key_map[0]; }
 
 uint8_t read_P2(void)
 {
@@ -497,6 +502,7 @@ uint8_t read_P2(void)
                 so = i ^ 0x07;
          }
       }
+      if (si == 0 && so != 0xff) g_o2_keyread++;   /* keypad row-0 actually produced a value (key reached BIOS) */
       if (so != 0xff)
       {
          p2 = p2 & 0x0F;
