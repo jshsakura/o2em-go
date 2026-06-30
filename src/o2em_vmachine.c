@@ -466,6 +466,11 @@ void write_p1(uint8_t d)
       o2em_rom = rom_table[(p1 & 1)?0:romlatch];
 }
 
+/* DIAG (Odyssey2 keypad): g_o2_kbscan = # times the BIOS scanned the digit row
+ * (row 0) with the keyboard enabled; g_o2_key1 = # of those where key[49] ("1")
+ * was set. Shown on-screen by main_videopac to locate the auto-start failure. */
+unsigned int g_o2_kbscan = 0, g_o2_key1 = 0;
+
 uint8_t read_P2(void)
 {
    if (NeedsPoll)
@@ -475,6 +480,8 @@ uint8_t read_P2(void)
    {
       int si = (p2 & 7);
       int so = 0xff;
+
+      if (si == 0) { g_o2_kbscan++; if (key[49]) g_o2_key1++; }
 
       if (si<6)
       {
